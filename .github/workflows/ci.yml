@@ -1,0 +1,30 @@
+name: Verify scanner
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test the receiver
+        run: |
+          python -m pip install -r requirements-dev.txt
+          python -m unittest discover -s tests -v
+      - name: Validate the Compose examples
+        run: |
+          export SCANNER_IP=192.0.2.42
+          export POSTGRES_PASSWORD="$(openssl rand -hex 24)"
+          export PAPERLESS_SECRET_KEY="$(openssl rand -hex 32)"
+          docker compose config --quiet
+          docker compose -f compose.yaml -f compose.paperless.yaml config --quiet
+      - name: Build the local scanner image
+        run: docker build --platform linux/amd64 -t ds-940-paperless-scanner:ci .
