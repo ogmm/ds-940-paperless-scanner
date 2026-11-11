@@ -4,7 +4,7 @@
 
 [Quick start](#get-your-first-pdf) · [Synology setup](docs/synology.md) · [Guides in other languages](#synology-guides)
 
-![Concept photograph of a compact scanner taking in a sheet of paper, with a small NAS in the background](assets/scanner-on-the-nas.webp)
+![The Brother DS-940DW sends scans over Wi-Fi to the Docker receiver on a Synology NAS. Choose an SMB share or Paperless-ngx as the PDF destination.](assets/scanner-architecture.svg)
 
 ## Use the scanner as your household inbox
 
@@ -51,9 +51,9 @@ Open Paperless on the configured address and port. The default port is 8010. Cre
 
 ## The receiver puts only complete PDFs in the destination
 
-![A scanner, a NAS, and a two-page document show the route from a sheet of paper to a saved PDF](assets/paper-to-pdf.webp)
+![The receiver captures both sides, builds a PDF in the spool, and renames the temporary file in the destination. Failed deliveries are retried from the spool.](assets/pdf-delivery.svg)
 
-The container uses Brother’s `brscan5` driver through SANE. It opens a short Wi-Fi session to check for paper, then closes the session when the feeder is empty. On a successful scan, it stages both page images and builds a PDF in `work/spool`. It moves the completed file into the watched directory under its final name. Finished scans can be retried after a temporary write failure.
+The container uses Brother’s `brscan5` driver through SANE. It opens a short Wi-Fi session to check for paper, then closes the session when the feeder is empty. On a successful scan, it stages both page images and builds a PDF in `work/spool`. It writes a temporary file in the destination, then renames it to its final `.pdf` name once the write succeeds. If delivery fails, the receiver can retry from the spool.
 
 The spool also retains copies of delivered scans and partial data from failed scans. Review its disk usage and archive or remove old jobs after checking that the destination holds the document. [Spool and recovery on Synology](docs/synology.md#troubleshoot-the-receiver)
 
