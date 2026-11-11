@@ -1,0 +1,40 @@
+services:
+  scanner:
+    build: .
+    image: ds-940-paperless-scanner:local
+    platform: linux/amd64
+    network_mode: host
+    restart: unless-stopped
+    user: "${SCAN_UID:-1000}:${SCAN_GID:-1000}"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 512m
+    stop_grace_period: 15s
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    environment:
+      SCANNER_IP: "${SCANNER_IP:?Set SCANNER_IP in .env}"
+      SCAN_PAPER_SIZE: "${SCAN_PAPER_SIZE:-a4}"
+    volumes:
+      - type: bind
+        source: "${SCAN_WORK_DIR:-./work}"
+        target: /work
+        bind:
+          create_host_path: false
+      - type: bind
+        source: "${SCAN_OUTPUT_DIR:-./consume}"
+        target: /consume
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD", "python", "-m", "ds940.supervisor", "healthcheck"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"

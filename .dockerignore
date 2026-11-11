@@ -1,0 +1,7 @@
+*
+!Dockerfile
+!requirements.txt
+!ds940/
+!ds940/**
+**/__pycache__/
+**/*.pyc
