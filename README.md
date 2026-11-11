@@ -1,39 +1,33 @@
-# Brother DS-940DW → NAS i Paperless-ngx
+# Brother DS-940DW to NAS and Paperless-ngx
 
-[Read in English](README.en.md) · [Instrukcja dla Synology krok po kroku](docs/synology.md)
+**Scan both sides of a document over Wi-Fi and save one PDF directly to your NAS.** The receiver sends finished files to a network share or to Paperless-ngx for OCR and search. Everyday scanning needs only the scanner and the NAS.
 
-**Włącz skaner, odczekaj chwilę i wsuń dokument.** Brother DS-940DW łączy się z domowym Wi‑Fi, a kontener na NAS zapisuje obie strony jako jeden PDF. Jeśli folder docelowy jest katalogiem importu Paperless-ngx, dokument trafia do archiwum i kolejki OCR. Cały codzienny obieg działa między skanerem i NAS-em, bez telefonu i aplikacji mobilnej.
+[Quick start](#get-your-first-pdf) · [Synology setup](docs/synology.md) · [Guides in other languages](#synology-guides)
 
-## Skąd wziął się projekt
+![Concept photograph of a compact scanner taking in a sheet of paper, with a small NAS in the background](assets/scanner-on-the-nas.webp)
 
-DS-940DW prawie trafił na pocztę w paczce zwrotnej. W tym poręcznym skanerze dwustronnym brakowało nam wygodnego zapisu na udział sieciowy. Mały odbiornik na Synology wykorzystał sterownik Brothera i oszczędził nam drogę na pocztę.
+## Use the scanner as your household inbox
 
-Teraz listy, faktury i paragony można skanować od razu po przyniesieniu do domu. Wkładamy jedną kartkę, czekamy na jej wysunięcie i wkładamy następną. Taki obieg daje nam na co dzień wygodę skanowania na NAS znaną z droższych urządzeń. Po sesji wyłączamy skaner.
+Power on the DS-940DW and wait for `Ready for paper` in the receiver log. Insert one sheet face up. The receiver scans both sides in color at 300 dpi and saves them together. Let the sheet exit before feeding the next one, then power off the scanner when the batch is done.
 
-## Jak to działa
+| Where you want the PDF | How to use this project |
+| --- | --- |
+| An SMB share on your NAS | Run the receiver and point `SCAN_OUTPUT_DIR` at the share’s directory on the Docker host. |
+| Your existing Paperless-ngx | Run the receiver and use the host directory mounted at `/usr/src/paperless/consume` in Paperless. |
+| A new Paperless-ngx archive | Run the receiver and the included Paperless-ngx, PostgreSQL, and Valkey stack together. |
 
-```mermaid
-flowchart LR
-    B["Brother DS-940DW"] -->|Wi-Fi i SANE| S["Odbiornik w Dockerze"]
-    S --> W["Bufor skanów na NAS"]
-    W --> F["Kompletny PDF w folderze docelowym"]
-    F --> P["Opcjonalnie Paperless-ngx i OCR"]
-```
+## Get your first PDF
 
-Odbiornik otwiera krótką sesję SANE przez Wi‑Fi. Gdy podajnik jest pusty, zamyka sesję i ponawia próbę po chwili. Po wsunięciu kartki pobiera obie strony w kolorze przy 300 dpi. Dopiero kompletny PDF pojawia się pod końcową nazwą w folderze docelowym. Bufor zachowuje źródła, a gotowy PDF można przekazać ponownie po przejściowym błędzie zapisu.
+Use a **Brother DS-940DW in Wi-Fi mode** and an **x86-64 Linux host with Docker Compose**, such as an amd64 Synology with DSM 7 and Container Manager. Connect the scanner to the same LAN and reserve its IPv4 address in your router. [Brother DS-940DW setup and support](https://support.brother.com/g/b/producttop.aspx?c=gb&lang=en&prod=ds940dw_us_eu_as)
 
-## Szybki start
-
-Potrzebujesz **Brother DS-940DW** w trybie Wi‑Fi, hosta **Linux x86‑64** z Docker Compose i katalogu, do którego odbiornik może zapisywać. Synology z DSM 7 i Container Managerem może pełnić rolę hosta. Zarezerwuj adres IPv4 skanera w routerze. Pierwsze połączenie skanera z siecią skonfiguruj według instrukcji Brothera. [Wsparcie DS-940DW](https://support.brother.com/g/b/producttop.aspx?c=gb&lang=en&prod=ds940dw_us_eu_as)
-
-Przy pierwszym uruchomieniu przygotuj katalogi i konfigurację w pobranym repozytorium.
+Open the downloaded source folder. Create the working and output directories and copy the configuration template on first setup.
 
 ```sh
 mkdir -p work consume
 cp .env.example .env
 ```
 
-Ustaw w `.env` adres `SCANNER_IP`. Dopasuj `SCAN_UID` i `SCAN_GID` do właściciela katalogów roboczego i docelowego. Następnie zbuduj i uruchom odbiornik.
+Set `SCANNER_IP` in `.env`. Set `SCAN_UID` and `SCAN_GID` to an account or group that can write to the working directory and the chosen output directory. If you use a share or an existing Paperless instance, enter its host path in `SCAN_OUTPUT_DIR`.
 
 ```sh
 docker compose config --quiet
@@ -41,17 +35,11 @@ docker compose up -d --build scanner
 docker compose logs -f scanner
 ```
 
-Po włączeniu Brothera poczekaj na komunikat `Ready for paper`. Zwykle potrzeba kilkunastu sekund. Po błędzie sterownika odbiornik może odczekać dłużej. Wsuń pojedynczą kartkę zadrukowaną stroną do góry. Skan rusza sam, a po jego zakończeniu w folderze pojawia się dwustronny PDF. Zakończ serię po pojawieniu się dokumentów i wyłącz skaner.
+Power on the scanner, wait for the receiver to connect, and test a sheet marked on both sides. Open the PDF in the destination to check page order and completeness. [Synology setup and first-scan checks](docs/synology.md)
 
-| Chcę skanować do… | Konfiguracja |
-| --- | --- |
-| Udziału SMB na NAS | Ustaw `SCAN_OUTPUT_DIR` na ścieżkę katalogu tego udziału widzianą przez hosta Dockera. |
-| Istniejącego Paperless-ngx | Ustaw `SCAN_OUTPUT_DIR` na katalog hosta podpięty jako `/usr/src/paperless/consume` w Paperless. |
-| Nowego Paperless-ngx | Użyj obu plików Compose zgodnie z przykładem poniżej. |
+### Start a new Paperless-ngx stack
 
-### Paperless-ngx od zera
-
-Utwórz też `export`. W `.env` zapisz lokalnie losowe wartości `POSTGRES_PASSWORD` i `PAPERLESS_SECRET_KEY`. Ustaw `PAPERLESS_BIND_IP` na adres NAS w LAN, jeśli chcesz otwierać Paperless z innych urządzeń. Compose uruchomi odbiornik, Paperless-ngx, PostgreSQL i Valkey.
+Create an `export` directory alongside `work` and `consume`. Set separate random values for `POSTGRES_PASSWORD` and `PAPERLESS_SECRET_KEY` in the local `.env`. Set `PAPERLESS_BIND_IP` to the NAS’s LAN address to reach the web interface from other devices.
 
 ```sh
 mkdir -p export
@@ -59,23 +47,43 @@ docker compose -f compose.yaml -f compose.paperless.yaml config --quiet
 docker compose -f compose.yaml -f compose.paperless.yaml up -d --build
 ```
 
-Otwórz Paperless na skonfigurowanym adresie i porcie, domyślnie 8010. Przy pierwszym wejściu utwórz konto administratora. Katalog `consume` jest kolejką, z której Paperless pobiera pliki po imporcie. Gotowe dokumenty znajdziesz w Paperless, a kopie robocze na NAS w `work/spool`. [Dokumentacja instalacji Paperless-ngx](https://docs.paperless-ngx.com/setup/)
+Open Paperless on the configured address and port. The default port is 8010. Create the first administrator, then send a test scan. Paperless takes files from `consume` and shows imported documents in its web interface. [Paperless-ngx installation guide](https://docs.paperless-ngx.com/setup/)
 
-## Długie paragony i sesja Wi‑Fi
+## The receiver puts only complete PDFs in the destination
 
-- **Rozmiar papieru.** Domyślny tryb `a4` odpowiada codziennemu obiegowi sprawdzonemu w pierwotnej instalacji. `SCAN_PAPER_SIZE=auto` uruchamia rozpoznawanie rozmiaru. `SCAN_PAPER_SIZE=legal` ustawia stały obszar około **35,56 cm**. Sterownik przyjął oba ustawienia. Paragon około 35 cm zaciął się w próbie z `auto`. Pełny fizyczny skan w Legal pozostaje do potwierdzenia. Krótsze kartki w tym formacie mogą mieć biały margines u dołu.
-- **Dłuższy papier.** Przy papierze ponad A4 zamknij górną prowadnicę wyjściową. Gdy paragon przekracza limit sterownika lub zacina się w Legal, Brother udostępnia osobny jednostronny tryb **Długi papier** w iPrint&Scan. [Dopuszczalne dokumenty](https://support.brother.com/g/b/faqend.aspx?c=us&faqid=faq00002914_005&lang=en&pfs=1&prod=ds940dw_us_eu_as) · [Instrukcja trybu Długi papier](https://support.brother.com/g/b/faqend.aspx?c=gb&faqid=faq00100159_001&lang=en&prod=ds940dw_us_eu_as)
-- **Zajęta sesja.** Po dłuższej bezczynności skaner może zgłaszać zajętą sesję, m.in. `-NG 401`. Odbiornik robi przerwę i ponawia połączenie. Wyłączaj urządzenie po skanowaniu, a jeśli sesja utknęła, zamknij inne programy skanujące i wyłącz oraz włącz Brothera. [Diagnostyka i obsługa bufora](docs/synology.md#diagnostyka-i-obsługa-bufora)
+![A scanner, a NAS, and a two-page document show the route from a sheet of paper to a saved PDF](assets/paper-to-pdf.webp)
 
-## Testowanie i przegląd źródeł
+The container uses Brother’s `brscan5` driver through SANE. It opens a short Wi-Fi session to check for paper, then closes the session when the feeder is empty. On a successful scan, it stages both page images and builds a PDF in `work/spool`. It moves the completed file into the watched directory under its final name. Finished scans can be retried after a temporary write failure.
+
+The spool also retains copies of delivered scans and partial data from failed scans. Review its disk usage and archive or remove old jobs after checking that the destination holds the document. [Spool and recovery on Synology](docs/synology.md#troubleshoot-the-receiver)
+
+## A4 is the starting point for everyday scanning
+
+| `SCAN_PAPER_SIZE` | Behavior |
+| --- | --- |
+| `a4` | Default fixed scan area of 210 × 297 mm. This is the format used for everyday scanning in the original home installation. |
+| `auto` | Uses the driver’s document size detection. A roughly 35 cm receipt jammed in the original trial. |
+| `legal` | Requests a fixed scan area about 355.6 mm long. The scanner accepted the geometry with an empty feeder. A full physical receipt scan in this mode is still unverified. Short sheets can have extra white space below the image. |
+
+For paper longer than A4, close the top output guide and leave room for the sheet to exit straight. For receipts beyond the driver’s range, Brother provides a separate single-sided **Long Paper** mode in iPrint&Scan. [Supported documents](https://support.brother.com/g/b/faqend.aspx?c=us&faqid=faq00002914_005&lang=en&pfs=1&prod=ds940dw_us_eu_as) · [Brother Long Paper instructions](https://support.brother.com/g/b/faqend.aspx?c=gb&faqid=faq00100159_001&lang=en&prod=ds940dw_us_eu_as)
+
+After extended idle time, the scanner can hold a busy session and report `-NG 401`. The receiver backs off and retries. If it stays busy, close other scanner clients and power-cycle the Brother. Switching it off between batches helps avoid leaving a session open. [Troubleshooting on Synology](docs/synology.md#troubleshoot-the-receiver)
+
+## The project grew out of a scanner we almost returned
+
+The DS-940DW was small enough to leave on a shelf and could scan both sides of a sheet. We wanted its Wi-Fi connection to deliver straight to our NAS. The receiver gave us that workflow and saved a trip to the post office with a return parcel. Now mail, invoices, and receipts go into our home archive as they arrive.
+
+## Build and verify the receiver
 
 ```sh
 python -m pip install -r requirements-dev.txt
 python -m unittest discover -s tests -v
 ```
 
-Testy używają sztucznych obrazów. Sprawdzają m.in. dwie strony PDF, pełny wymiar Legal, ponawianie przekazania i zachowanie częściowego skanu po błędzie. Workflow CI sprawdza też oba warianty Compose i buduje obraz amd64.
+The tests cover duplex PDF output, Legal-sized frames, partial scans, retries, and connection recovery. CI checks both Compose configurations and builds the amd64 image. A separate Paperless-ngx 3.4.2 stack imported a synthetic duplex PDF from the receiver and recognized text on both pages. Use a marked sheet to verify your physical scanner after setup.
 
-W osobnym stosie Paperless-ngx 3.4.2 odbiornik przekazał syntetyczny dwustronny PDF. Paperless zaimportował dokument i rozpoznał tekst po obu stronach. Przy nowym wdrożeniu wykonaj próbę z fizycznym skanerem. [Pierwszy skan na Synology](docs/synology.md#3-zrób-pierwszy-skan)
+The Dockerfile fetches Brother’s pinned driver package and checks its SHA-256 during the build. Build the image for your own installation under Brother’s driver terms. Store deployment settings and scans in local runtime directories. [Brother driver downloads and terms](https://support.brother.com/g/b/downloadlist.aspx?c=gb&lang=en&prod=ds940dw_us_eu_as&os=128)
 
-Dockerfile pobiera sterownik `brscan5` z serwera Brothera podczas budowy i sprawdza SHA-256. Sterownik podlega warunkom Brothera. Buduj obraz dla swojej instalacji. W repo są źródła i szablony konfiguracji, a ustawienia oraz skany pozostają w lokalnych katalogach. [Sterowniki i warunki Brothera](https://support.brother.com/g/b/downloadlist.aspx?c=gb&lang=en&prod=ds940dw_us_eu_as&os=128)
+## Synology guides
+
+[English](docs/synology.md) · [Polski](docs/i18n/pl.md) · [Deutsch](docs/i18n/de.md) · [Français](docs/i18n/fr.md) · [Español](docs/i18n/es.md) · [简体中文](docs/i18n/zh-CN.md) · [Русский](docs/i18n/ru.md)

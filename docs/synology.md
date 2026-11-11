@@ -1,16 +1,18 @@
-# Brother DS-940DW na Synology DSM 7
+# Set up the Brother DS-940DW on Synology DSM 7
 
-Ten przewodnik prowadzi od połączenia Brothera z Wi‑Fi do pierwszego dokumentu na NAS. Możesz uruchomić sam odbiornik albo dodać do niego nową instancję Paperless-ngx.
+[Project README](../README.md) · [Polski](i18n/pl.md) · [Deutsch](i18n/de.md) · [Français](i18n/fr.md) · [Español](i18n/es.md) · [简体中文](i18n/zh-CN.md) · [Русский](i18n/ru.md)
 
-## 1. Przygotuj urządzenia i katalogi
+Run the receiver on your NAS and choose where it writes finished PDFs. Use an SMB share, point it at an existing Paperless-ngx instance, or start a new Paperless-ngx stack alongside it.
 
-1. W **Centrum pakietów** zainstaluj **Container Manager**. Wariant w tym repo korzysta ze sterownika Brother dla **x86‑64 (amd64)**. Architektura hosta widoczna w terminalu po `uname -m` powinna być `x86_64`.
-2. Ustaw przełącznik skanera w pozycji Wi‑Fi i podłącz go do domowej sieci w trybie infrastruktury. W routerze zarezerwuj jego adres IPv4. NAS powinien mieć dostęp do skanera w LAN. W sprawdzonej konfiguracji sterownik używał TCP 54921 i UDP 161. Pozostaw ruch skanera w sieci lokalnej. [Instrukcje Brothera](https://support.brother.com/g/b/producttop.aspx?c=gb&lang=en&prod=ds940dw_us_eu_as)
-3. W **File Station** utwórz katalog projektu w udziale `docker`. Przykładowa ścieżka to `/volume1/docker/ds-940-paperless-scanner`. Umieść bezpośrednio w tym katalogu zawartość pobranego repo, w tym `compose.yaml`, `Dockerfile`, `ds940/` i `.env.example`.
-4. Utwórz `work`. Przy zapisie do nowego katalogu utwórz też `consume`. Wybierz konto lub grupę, które będą mogły zapisywać do obu katalogów. Numery UID i GID konta możesz odczytać poleceniami `id -u` i `id -g` w sesji SSH na NAS. Przy istniejącym Paperless możesz użyć jego UID i GID, jeśli mają dostęp do `work` i `consume`.
-5. Skopiuj `.env.example` do `.env` w katalogu projektu. Uzupełnij `SCANNER_IP`, `SCAN_UID` i `SCAN_GID`. `SCAN_WORK_DIR=./work` i `SCAN_OUTPUT_DIR=./consume` są ścieżkami względem katalogu projektu. Możesz podać ścieżki bezwzględne. Zachowaj `.env` na NAS w katalogu dostępnym dla administratora wdrożenia.
+## 1. Prepare the scanner and NAS
 
-Jeśli tworzysz katalogi przez SSH, możesz użyć poniższych poleceń. Nadaj uprawnienia tylko katalogom odbiornika i nowym katalogom tego wdrożenia.
+1. Install **Container Manager** from **Package Center**. The supplied Brother driver targets **x86-64 (amd64)**. On the NAS, `uname -m` should return `x86_64`.
+2. Set the scanner’s switch to Wi-Fi and connect it to your home LAN. Reserve its IPv4 address in your router. The reference setup used TCP 54921 and UDP 161 between the NAS and the scanner. Keep the scanner connection on your LAN. [Brother wireless setup](https://support.brother.com/g/b/producttop.aspx?c=gb&lang=en&prod=ds940dw_us_eu_as)
+3. In **File Station**, create a folder such as `/volume1/docker/ds-940-paperless-scanner`. Copy the contents of the downloaded repository directly into that folder, including `compose.yaml`, `Dockerfile`, `ds940/`, and `.env.example`.
+4. Create the `work` directory and, if you need a new destination, `consume`. Choose a user and group that can write to both. Over SSH, `id -u` and `id -g` show the numeric IDs of the current account. For an existing Paperless installation, you can use its IDs if they have write access to both directories.
+5. Copy `.env.example` to `.env` and set `SCANNER_IP`, `SCAN_UID`, and `SCAN_GID`. Keep `.env` in the project directory on the NAS. The default paths `./work` and `./consume` are relative to the project folder. You can also use absolute host paths for `SCAN_WORK_DIR` and `SCAN_OUTPUT_DIR`.
+
+For a first setup over SSH, create the directories and configuration template as follows.
 
 ```sh
 cd /volume1/docker/ds-940-paperless-scanner
@@ -19,18 +21,19 @@ cp .env.example .env
 chmod 600 .env
 ```
 
-## 2. Wybierz katalog docelowy
+Edit `.env` before starting the containers. Apply permissions to the receiver’s working directory and any new folders you create for this project.
 
-### Wariant A. Udział SMB albo istniejący Paperless-ngx
+## 2. Select the PDF destination
 
-**Udział SMB.** Ustaw `SCAN_OUTPUT_DIR` na ścieżkę katalogu w udziale na NAS, np. `/volume1/scans/inbox`. PDF-y będą widoczne w tym udziale po SMB.
+### A. An SMB share or an existing Paperless-ngx instance
 
-**Istniejący Paperless.** W Container Managerze otwórz szczegóły kontenera Paperless. W jego wolumenach odczytaj **ścieżkę hosta** przypisaną do `/usr/src/paperless/consume`. Przykład to `/volume1/docker/paperless/consume`. Wpisz tę ścieżkę jako `SCAN_OUTPUT_DIR`. Odbiornik i Paperless muszą mieć dostęp do tego samego katalogu. Jeśli Paperless nie reaguje na nowe pliki z udziału sieciowego, w jego środowisku ustaw `PAPERLESS_CONSUMER_POLLING_INTERVAL=15`. [Konfiguracja importu Paperless-ngx](https://docs.paperless-ngx.com/configuration/#document-consumption)
+- **SMB share.** Point `SCAN_OUTPUT_DIR` at a directory on the NAS, such as `/volume1/scans/inbox`. Open that share over SMB to view the completed PDFs.
+- **Existing Paperless-ngx.** Open the Paperless container’s volume details in Container Manager and find the **host path** mounted at `/usr/src/paperless/consume`. Set `SCAN_OUTPUT_DIR` to that host path. Both containers need access to it. If a network filesystem misses file notifications, set `PAPERLESS_CONSUMER_POLLING_INTERVAL=15` in the Paperless container. [Paperless-ngx consumption settings](https://docs.paperless-ngx.com/configuration/#document-consumption)
 
-Wybierz Container Manager lub SSH, aby uruchomić sam odbiornik.
+Start the receiver using Container Manager or SSH.
 
-- **Container Manager.** Otwórz **Projekt → Utwórz**. Nazwij projekt `ds-940-paperless-scanner`, wskaż katalog ze źródłami i wgraj `compose.yaml`. Wybierz **Zbuduj** i **Uruchom**. Jeśli kreator nie odczyta zmiennych z `.env`, użyj poniższych poleceń w katalogu projektu. [Obsługa projektów Container Manager](https://kb.synology.com/tr-tr/DSM/help/ContainerManager/docker_project?version=7)
-- **SSH.** W katalogu projektu uruchom polecenia jako administrator Dockera na NAS. W starszych instalacjach polecenie Compose może się nazywać `docker-compose`.
+- **Container Manager.** Choose **Project → Create**. Name the project `ds-940-paperless-scanner`, select the folder with the source files, and upload `compose.yaml`. Choose **Build**, then **Start**. If the wizard cannot resolve variables from `.env`, use the SSH commands below from the project folder. [Synology project documentation](https://kb.synology.com/tr-tr/DSM/help/ContainerManager/docker_project?version=7)
+- **SSH.** Run the following commands from the project folder using an account with Docker access. Some older Synology installations expose Compose as `docker-compose`.
 
 ```sh
 cd /volume1/docker/ds-940-paperless-scanner
@@ -38,11 +41,11 @@ sudo docker compose -p ds-940-paperless-scanner -f compose.yaml config --quiet
 sudo docker compose -p ds-940-paperless-scanner -f compose.yaml up -d --build scanner
 ```
 
-### Wariant B. Nowe Paperless-ngx i odbiornik
+### B. A new Paperless-ngx stack
 
-1. Utwórz w katalogu projektu `export`. Upewnij się, że UID i GID ustawione w `.env` mają dostęp do nowych katalogów `work`, `consume` i `export`. Przykład Compose przypisuje te same identyfikatory aplikacji Paperless.
-2. W `.env` ustaw osobne losowe wartości `POSTGRES_PASSWORD` i `PAPERLESS_SECRET_KEY`. Możesz wygenerować każdą poleceniem `openssl rand -hex 32` na swoim komputerze lub NAS. Jeśli chcesz korzystać z Paperless w LAN, ustaw `PAPERLESS_BIND_IP` na adres NAS. Domyślny port to 8010. Własną strefę i języki OCR podaj w `.env`. Przykładowo `PAPERLESS_OCR_LANGUAGE=pol+eng` wraz z `PAPERLESS_OCR_LANGUAGES=pol` dodaje polski do domyślnego angielskiego. [Konfiguracja OCR](https://docs.paperless-ngx.com/configuration/#ocr-settings)
-3. Uruchom oba pliki Compose z tego samego katalogu. Ten przykład tworzy osobny projekt ze swoimi wolumenami danych.
+1. Create `export`. Ensure that the numeric user and group in `.env` can write to the new `work`, `consume`, and `export` directories. The example gives Paperless the same IDs.
+2. Set separate random values for `POSTGRES_PASSWORD` and `PAPERLESS_SECRET_KEY` in `.env`. You can generate each value locally with `openssl rand -hex 32`. Set `PAPERLESS_BIND_IP` to the NAS’s LAN address if you want to reach the web interface from another device. The default port is 8010. Use `PAPERLESS_TIME_ZONE`, `PAPERLESS_OCR_LANGUAGE`, and `PAPERLESS_OCR_LANGUAGES` to customize the archive. [Paperless-ngx OCR settings](https://docs.paperless-ngx.com/configuration/#ocr-settings)
+3. Run both Compose files from the source directory. The example creates dedicated data volumes for the new instance.
 
 ```sh
 cd /volume1/docker/ds-940-paperless-scanner
@@ -51,28 +54,28 @@ sudo docker compose -p ds-940-paperless-scanner -f compose.yaml -f compose.paper
 sudo docker compose -p ds-940-paperless-scanner -f compose.yaml -f compose.paperless.yaml up -d --build
 ```
 
-4. W DSM znajdź uruchomione kontenery w **Container Manager → Kontener**. W przeglądarce otwórz Paperless na adresie i porcie z `.env` i utwórz pierwszego administratora. Baza i Valkey pozostają w sieci projektu.
+4. Find the running containers under **Container Manager → Container**. Open Paperless on the address and port from `.env` and create the first administrator. PostgreSQL and Valkey use the project network.
 
-Możesz też wykonać polecenia Compose jako jednorazowe zadanie DSM. W **Panel sterowania → Harmonogram zadań → Utwórz → Zaplanowane zadanie → Skrypt zdefiniowany przez użytkownika** wybierz konto `root`. Wklej polecenia danego wariantu bez `sudo`, z `cd` do katalogu źródeł. Uruchom zadanie ręcznie raz. Kontenery wznawiają pracę zgodnie z polityką restartu w Compose. [Harmonogram zadań DSM](https://kb.synology.com/index.php/en-ro/DSM/help/DSM/AdminCenter/system_taskscheduler?version=7)
+You can also run the commands once through **Control Panel → Task Scheduler → Create → Scheduled Task → User-defined script** as `root`. Paste the commands for your chosen option with the `cd` line and without `sudo`. Run the task manually once. The Compose restart policy handles subsequent NAS restarts. [DSM Task Scheduler](https://kb.synology.com/index.php/en-ro/DSM/help/DSM/AdminCenter/system_taskscheduler?version=7)
 
-## 3. Zrób pierwszy skan
+## 3. Verify a physical scan
 
-1. Włącz Brothera w trybie Wi‑Fi. W dzienniku kontenera `scanner` zaczekaj na **Ready for paper**. Szczegółowy stan jest w `work/auto-status.json`. Stan `waiting_for_paper` oznacza, że sterownik otworzył skaner i sprawdził podajnik. Stan `healthy` kontenera dotyczy nadzorcy, który działa również przy wyłączonym Brotherze.
-2. Zaznacz przód i tył kartki testowej. Wsuń ją do podajnika z przodem do góry. Odbiornik zacznie skan bez naciskania przycisku. Zaczekaj na całkowite wysunięcie kartki, zanim podasz kolejną.
-3. Otwórz PDF w udziale lub w Paperless i sprawdź obie strony. Paperless pobiera plik z katalogu importu. Odczekaj, aż dokument pojawi się w aplikacji, i sprawdź wynik OCR.
-4. Wyłącz skaner po zakończeniu serii. Odbiornik pozostanie uruchomiony i zaczeka na następną sesję.
+1. Power on the scanner in Wi-Fi mode. In the `scanner` container log, wait for `Ready for paper`. You can also read `work/auto-status.json` in File Station. `waiting_for_paper` indicates that the driver reached the feeder. Docker’s `healthy` status reports that the supervisor is running, even while the scanner is powered off.
+2. Mark the front and back of a test sheet. Insert it face up. The receiver starts automatically. Wait for the sheet to exit before feeding another.
+3. Open the PDF on the share or in Paperless. Check both sides and the last line of the document. In Paperless, allow time for the import and OCR to finish.
+4. Power off the scanner after the batch. The receiver stays available for the next session.
 
-Przy zmianie `SCAN_PAPER_SIZE` w `.env` wykonaj ponownie `docker compose up -d scanner` z taką samą nazwą projektu i listą plików `-f`, jak podczas instalacji. Przy paragonach dłuższych od A4 zamknij górną prowadnicę i zostaw miejsce na prosty wysuw papieru.
+To change `SCAN_PAPER_SIZE` in `.env`, run `docker compose up -d scanner` again with the same project name and `-f` files as your installation. For paper longer than A4, close the top output guide and leave room for a straight exit. [Brother’s supported paper sizes](https://support.brother.com/g/b/faqend.aspx?c=us&faqid=faq00002914_005&lang=en&pfs=1&prod=ds940dw_us_eu_as)
 
-## Diagnostyka i obsługa bufora
+## Troubleshoot the receiver
 
-| Objaw | Co sprawdzić |
+| What you see | What to check |
 | --- | --- |
-| `scanner_offline` po włączeniu | Sprawdź tryb Wi‑Fi, adres IPv4 i dostępność w LAN. Odbiornik ponawia próbę w odstępach, więc daj mu chwilę na zmianę stanu. |
-| `scanner_busy` lub `-NG 401` | Zamknij inne aplikacje korzystające ze skanera. Odczekaj na ponowienie lub wyłącz i włącz Brothera. Jednemu urządzeniu przypisz jeden odbiornik. |
-| `paper_blocked` i wykrzyknik | Otwórz górną pokrywę, wyjmij zacięty papier i zamknij pokrywę. Sprawdź długość papieru, ułożenie prowadnicy i profil skanowania. |
-| PDF jest w buforze, a brakuje go w Paperless | Sprawdź `SCAN_OUTPUT_DIR`, prawa do katalogu i dziennik Paperless. `phase: ready` oznacza oczekiwanie na przekazanie. `phase: forwarded` oznacza zapis do folderu docelowego. |
+| `scanner_offline` after power-on | Check the scanner’s Wi-Fi mode, reserved IPv4 address, and LAN access from the NAS. The receiver retries after a delay. |
+| `scanner_busy` or `-NG 401` | Close other scanner clients. Let the receiver retry or power-cycle the Brother. Use one receiver per scanner. |
+| `paper_blocked` and the error light | Open the top cover, gently remove the sheet, and close the cover. Check its length, the guide, and the selected paper profile. |
+| PDF in the spool, with no document in Paperless | Check `SCAN_OUTPUT_DIR`, permissions, and the Paperless logs. A manifest with `phase: ready` is waiting for delivery. `phase: forwarded` means the PDF reached the output directory. |
 
-W `work/spool` każdy skan ma osobny folder z manifestem, obrazami stron oraz PDF-em albo częściowymi danymi po błędzie. Kopie ułatwiają odzyskanie skanu. Gdy potwierdzisz import i masz potrzebną kopię, możesz archiwizować lub usuwać wybrane starsze foldery z `phase: forwarded` w File Station. Zachowaj foldery ze stanem `ready` do czasu przekazania. Wzrost zajętości dysku w buforze to osobne zjawisko od zajętej sesji Wi‑Fi. Wyłączenie skanera kończy sesję pracy, a pliki zostają na NAS.
+Each job in `work/spool` contains a manifest and the page images, completed PDF, or partial data saved after an error. After confirming import and keeping any backup you need, you can archive or remove old jobs marked `forwarded`. Keep jobs marked `ready` until delivery finishes. Disk use in the spool is separate from a busy Wi-Fi session. Switching off the scanner ends the session and leaves the files on the NAS.
 
-Po przerwaniu pracy między zapisem PDF a oznaczeniem manifestu odbiornik może ponowić przekazanie gotowego dokumentu. Przykład Compose włącza rozpoznawanie duplikatów przez Paperless. [Rozwiązywanie zacięć Brother](https://support.brother.com/g/b/faqend.aspx?c=pl&faqid=faq00000694_502onceyou&lang=pl&prod=ds940dw_us_eu_as) · [Opcje importu Paperless-ngx](https://docs.paperless-ngx.com/configuration/#document-consumption)
+A restart between publishing a PDF and updating its manifest can cause the receiver to offer the finished file again. The included Paperless configuration enables duplicate detection. [Brother jam instructions](https://support.brother.com/g/b/faqend.aspx?c=gb&faqid=faq00000694_502&lang=en&prod=ds940dw_us_eu_as) · [Paperless-ngx consumption options](https://docs.paperless-ngx.com/configuration/#document-consumption)
