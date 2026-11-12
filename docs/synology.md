@@ -1,8 +1,8 @@
 # Set up the Brother DS-940DW on Synology DSM 7
 
-[Project README](../README.md) · [Polski](i18n/pl.md) · [Deutsch](i18n/de.md) · [Français](i18n/fr.md) · [Español](i18n/es.md) · [简体中文](i18n/zh-CN.md) · [Русский](i18n/ru.md)
+[Docker deployment](docker.md) · [Project README](../README.md) · [Polski](i18n/pl.md) · [Deutsch](i18n/de.md) · [Français](i18n/fr.md) · [Español](i18n/es.md) · [简体中文](i18n/zh-CN.md) · [Русский](i18n/ru.md)
 
-Run the receiver on your NAS and choose where it writes finished PDFs. Use an SMB share, point it at an existing Paperless-ngx instance, or start a new Paperless-ngx stack alongside it.
+This example runs the Docker receiver on an amd64 Synology NAS using Container Manager. Use an SMB share, point it at an existing Paperless-ngx instance, or start a new Paperless-ngx stack alongside it.
 
 ## 1. Prepare the scanner and NAS
 
