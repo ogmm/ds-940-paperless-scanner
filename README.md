@@ -30,11 +30,9 @@ We bought the DS-940DW to sit on a shelf and file mail, invoices, and receipts, 
 
 ## Requirements
 
-| | |
-| --- | --- |
-| **Scanner** | Brother DS-940DW connected to your router over Wi-Fi, with a reserved IPv4 address. [Brother wireless setup](https://support.brother.com/g/b/producttop.aspx?c=gb&lang=en&prod=ds940dw_us_eu_as) |
-| **Host** | x86-64 (amd64) Linux with Docker Engine and Docker Compose v2, on the same LAN as the scanner. For example an Intel or AMD based Synology NAS with DSM 7, a mini PC, or a virtual machine. |
-| **Not supported** | ARM hosts, because Brother's driver used here is built for amd64. Docker Desktop on macOS and Windows is untested. The receiver relies on Linux [host networking](https://docs.docker.com/engine/network/drivers/host/). |
+- **Scanner:** Brother DS-940DW connected to your router over Wi-Fi, with a reserved IPv4 address. [Brother wireless setup](https://support.brother.com/g/b/producttop.aspx?c=gb&lang=en&prod=ds940dw_us_eu_as)
+- **Host:** x86-64 (amd64) Linux with Docker Engine and Docker Compose v2, on the same LAN as the scanner. For example an Intel or AMD based Synology NAS with DSM 7, a mini PC, or a virtual machine.
+- **Not supported:** ARM hosts, because Brother's driver used here is built for amd64. Docker Desktop on macOS and Windows is untested. The receiver relies on Linux [host networking](https://docs.docker.com/engine/network/drivers/host/).
 
 ## How it works
 
