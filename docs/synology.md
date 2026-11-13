@@ -67,6 +67,15 @@ You can also run the commands once through **Control Panel → Task Scheduler �
 
 To change `SCAN_PAPER_SIZE` in `.env`, run `docker compose up -d scanner` again with the same project name and `-f` files as your installation. For paper longer than A4, close the top output guide and leave room for a straight exit. [Brother’s supported paper sizes](https://support.brother.com/g/b/faqend.aspx?c=us&faqid=faq00002914_005&lang=en&pfs=1&prod=ds940dw_us_eu_as)
 
+## Update the receiver
+
+Copy the files of the new version into `/volume1/docker/ds-940-paperless-scanner` and replace the old ones. The repository doesn't contain `.env`, `work`, `consume`, or `export`, so your settings and scans stay in place. Then rebuild the receiver over SSH with the same project name and `-f` files as your installation. Add `-f compose.paperless.yaml` if you run the Paperless-ngx stack from this project.
+
+```sh
+cd /volume1/docker/ds-940-paperless-scanner
+sudo docker compose -p ds-940-paperless-scanner -f compose.yaml up -d --build scanner
+```
+
 ## Troubleshoot the receiver
 
 | What you see | What to check |

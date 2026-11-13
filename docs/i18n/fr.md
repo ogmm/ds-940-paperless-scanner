@@ -53,6 +53,15 @@ Ouvrez Paperless à l’adresse configurée et créez le premier administrateur.
 
 Le profil par défaut est `SCAN_PAPER_SIZE=a4`. Le mode `auto` détecte le format et `legal` utilise une zone fixe d’environ 355,6 mm de long. La capture complète d’un ticket long en mode Legal reste à vérifier sur l’appareil. Fermez le guide de sortie supérieur pour le papier plus long que l’A4. Après un changement de profil, relancez `docker compose up -d scanner` avec le même nom de projet et les mêmes fichiers `-f`.
 
+## Mettre à jour le récepteur
+
+Copiez les fichiers de la nouvelle version dans `/volume1/docker/ds-940-paperless-scanner` en remplaçant les anciens. Le dépôt ne contient ni `.env`, ni `work`, `consume` ou `export` : vos réglages et vos numérisations restent en place. Reconstruisez ensuite le récepteur via SSH avec le même nom de projet et les mêmes fichiers `-f` que lors de l’installation. Si vous utilisez la pile Paperless-ngx de ce projet, ajoutez `-f compose.paperless.yaml`.
+
+```sh
+cd /volume1/docker/ds-940-paperless-scanner
+sudo docker compose -p ds-940-paperless-scanner -f compose.yaml up -d --build scanner
+```
+
 ## Dépannage
 
 - Avec `scanner_offline`, vérifiez le Wi-Fi, l’adresse réservée et l’accès depuis le NAS.

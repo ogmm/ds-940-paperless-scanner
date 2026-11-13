@@ -53,6 +53,15 @@ sudo docker compose -p ds-940-paperless-scanner -f compose.yaml -f compose.paper
 
 Профиль по умолчанию — `SCAN_PAPER_SIZE=a4`. Режим `auto` определяет размер, а `legal` использует фиксированную область длиной около 355,6 мм. Полное сканирование длинного чека в режиме Legal ещё предстоит проверить на устройстве. Для бумаги длиннее A4 закройте верхнюю направляющую выхода. После смены профиля выполните `docker compose up -d scanner` с тем же именем проекта и теми же файлами `-f`.
 
+## Обновление приёмника
+
+Скопируйте файлы новой версии в `/volume1/docker/ds-940-paperless-scanner`, заменив старые. В репозитории нет `.env`, `work`, `consume` и `export`, поэтому ваши настройки и сканы сохранятся. Затем пересоберите приёмник по SSH с тем же именем проекта и теми же файлами `-f`, что и при установке. Если вы используете Paperless-ngx из этого проекта, добавьте `-f compose.paperless.yaml`.
+
+```sh
+cd /volume1/docker/ds-940-paperless-scanner
+sudo docker compose -p ds-940-paperless-scanner -f compose.yaml up -d --build scanner
+```
+
 ## Устранение неполадок
 
 - При `scanner_offline` проверьте Wi-Fi, зарезервированный адрес и доступность сканера с NAS.

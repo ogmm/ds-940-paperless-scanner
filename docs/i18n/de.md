@@ -53,6 +53,15 @@ sudo docker compose -p ds-940-paperless-scanner -f compose.yaml -f compose.paper
 
 `SCAN_PAPER_SIZE=a4` ist die Standardeinstellung. `auto` erkennt die Papiergröße. `legal` verwendet einen festen Scanbereich von rund 355,6 mm Länge. Ein vollständiger physischer Scan eines langen Belegs im Legal-Modus steht noch aus. Schließe bei Papier über A4 die obere Ausgabeführung. Starte den Dienst nach einer Profiländerung mit `docker compose up -d scanner` und denselben Projekt- und `-f`-Optionen neu.
 
+## Empfänger aktualisieren
+
+Kopiere die Dateien der neuen Version nach `/volume1/docker/ds-940-paperless-scanner` und ersetze die alten. Das Repository enthält weder `.env` noch `work`, `consume` oder `export`, daher bleiben Einstellungen und Scans erhalten. Baue den Empfänger anschließend per SSH mit demselben Projektnamen und denselben `-f`-Dateien wie bei der Installation neu. Wenn du den Paperless-ngx-Stack aus diesem Projekt nutzt, ergänze `-f compose.paperless.yaml`.
+
+```sh
+cd /volume1/docker/ds-940-paperless-scanner
+sudo docker compose -p ds-940-paperless-scanner -f compose.yaml up -d --build scanner
+```
+
 ## Fehler beheben
 
 - Bei `scanner_offline` prüfe WLAN-Modus, reservierte Adresse und Erreichbarkeit im LAN.

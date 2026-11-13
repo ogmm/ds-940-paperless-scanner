@@ -53,6 +53,15 @@ sudo docker compose -p ds-940-paperless-scanner -f compose.yaml -f compose.paper
 
 默认配置为 `SCAN_PAPER_SIZE=a4`。`auto` 会检测纸张尺寸，`legal` 使用长度约为 355.6 毫米的固定扫描区域。Legal 模式下完整扫描一张长收据仍需在实体设备上验证。扫描比 A4 更长的纸张时，请合上顶部出纸导板。更改配置后，使用与安装时相同的项目名称和 `-f` 文件运行 `docker compose up -d scanner`。
 
+## 更新接收器
+
+将新版本的文件复制到 `/volume1/docker/ds-940-paperless-scanner` 并替换旧文件。仓库中不包含 `.env`、`work`、`consume` 和 `export`，因此你的设置和扫描文件会保留。然后通过 SSH 使用与安装时相同的项目名称和 `-f` 文件重新构建接收器。如果你使用本项目提供的 Paperless-ngx，请加上 `-f compose.paperless.yaml`。
+
+```sh
+cd /volume1/docker/ds-940-paperless-scanner
+sudo docker compose -p ds-940-paperless-scanner -f compose.yaml up -d --build scanner
+```
+
 ## 故障排查
 
 - 出现 `scanner_offline` 时，检查 Wi-Fi 模式、保留地址和 NAS 到扫描仪的网络连接。

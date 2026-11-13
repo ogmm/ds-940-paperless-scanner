@@ -1,6 +1,6 @@
 # Deploy the receiver with Docker Compose
 
-[Quick start](../README.md#get-your-first-pdf) · [Synology DSM 7 example](synology.md)
+[Quick start](../README.md#quick-start) · [Synology DSM 7 example](synology.md)
 
 Build and run the `scanner` service from `compose.yaml` on an x86-64 Linux host on the scanner's LAN. A local directory is enough for the first scan. Point the same service at a mounted share for network storage or a Paperless-ngx consume directory for automatic import.
 
@@ -14,9 +14,11 @@ Set these values in the `.env` file beside `compose.yaml`. The two directory set
 | `SCAN_UID`, `SCAN_GID` | `1000`, `1000` | Numeric IDs with write access to the working and output directories. |
 | `SCAN_WORK_DIR` | `./work` | Persistent directory for status, page images, and the PDF spool. Use local storage so jobs are available during share outages. |
 | `SCAN_OUTPUT_DIR` | `./consume` | Local folder, mounted network directory, or Paperless-ngx consume directory. |
-| `SCAN_PAPER_SIZE` | `a4` | Paper profile. See the [paper size notes](../README.md#a4-is-the-starting-point-for-everyday-scanning) before trying `auto` or `legal`. |
+| `SCAN_PAPER_SIZE` | `a4` | Paper profile. See the [paper size notes](../README.md#paper-sizes) before trying `auto` or `legal`. |
 
-Run the [quick start](../README.md#get-your-first-pdf) for a new installation. After editing `.env` for the standalone receiver, run `docker compose up -d scanner`. For the included Paperless-ngx stack, run `docker compose -f compose.yaml -f compose.paperless.yaml up -d` so both services pick up changes to the shared directory and user settings.
+Run the [quick start](../README.md#quick-start) for a new installation. After editing `.env` for the standalone receiver, run `docker compose up -d scanner`. For the included Paperless-ngx stack, run `docker compose -f compose.yaml -f compose.paperless.yaml up -d` so both services pick up changes to the shared directory and user settings.
+
+To skip the `-f` options with the Paperless-ngx stack, uncomment `COMPOSE_FILE=compose.yaml:compose.paperless.yaml` in `.env`. Plain `docker compose up -d`, `ps`, and `logs` then use both files. [Compose environment variables](https://docs.docker.com/compose/how-tos/environment-variables/envvars/#compose_file)
 
 ## Save to a mounted network share
 
@@ -51,6 +53,17 @@ docker compose -f compose.yaml -f compose.paperless.yaml up -d --build
 ```
 
 On the Docker host, open `http://127.0.0.1:8010` by default. To open the web interface from another device, set `PAPERLESS_BIND_IP` to the Docker host's LAN address before starting the stack. Create the first administrator and send a test scan. [Paperless-ngx setup guide](https://docs.paperless-ngx.com/setup/)
+
+## Update the receiver
+
+Pull the new version and rebuild the image from the project folder. Use the same `-f` files as for the first start.
+
+```sh
+git pull
+docker compose up -d --build scanner
+```
+
+Git does not track `.env`, `work`, `consume`, or `export`, so the update keeps your settings, spool, and scans. If you downloaded a ZIP instead of cloning, extract the new files over the project folder. To change the Paperless-ngx version, set `PAPERLESS_VERSION` in `.env` after reading the Paperless-ngx release notes, then run `docker compose -f compose.yaml -f compose.paperless.yaml up -d`.
 
 ## Troubleshoot the receiver
 
