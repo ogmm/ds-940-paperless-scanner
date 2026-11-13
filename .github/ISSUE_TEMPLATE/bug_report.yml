@@ -1,0 +1,63 @@
+name: Bug report
+description: The receiver doesn't scan, deliver, or start as expected.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please remove IP addresses, host names, and document names you don't want to share from logs before posting.
+        Report security problems privately through the Security tab instead.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: host
+    attributes:
+      label: Docker host
+      description: System, version, and CPU architecture.
+      placeholder: Synology DSM 7.2 on x86-64, Debian 13 on a mini PC, ...
+    validations:
+      required: true
+  - type: dropdown
+    id: destination
+    attributes:
+      label: PDF destination
+      options:
+        - Local folder
+        - SMB or NFS share mounted on the host
+        - Existing Paperless-ngx installation
+        - Paperless-ngx stack from compose.paperless.yaml
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: paper-size
+    attributes:
+      label: SCAN_PAPER_SIZE
+      options:
+        - a4
+        - auto
+        - legal
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Output of `docker compose version`, the project commit (`git rev-parse --short HEAD`), and the scanner firmware if you know it.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Receiver log
+      description: Output of `docker compose logs --tail 100 scanner`.
+      render: text
+  - type: textarea
+    id: status
+    attributes:
+      label: auto-status.json
+      description: Contents of `auto-status.json` in the working directory.
+      render: json

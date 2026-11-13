@@ -1,0 +1,22 @@
+name: Feature or setup idea
+description: Suggest an improvement, a new deployment example, or support for another setup.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like to change?
+      description: Describe the problem first, then the change you have in mind.
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: Your setup
+      description: Scanner model, Docker host, and where your PDFs should go.
+  - type: checkboxes
+    id: testing
+    attributes:
+      label: Testing
+      options:
+        - label: I can test this with a physical scanner.
