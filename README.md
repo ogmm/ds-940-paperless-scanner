@@ -76,7 +76,16 @@ docker compose logs -f scanner
 
 Power on the scanner and wait for a line such as `Ready for paper, A4 (210 x 297 mm), duplex, 300 dpi`. Mark both sides of a test sheet, insert it face up, and open the new PDF in `consume/` to check both pages.
 
-For everyday use, feed the next sheet after the previous one has left the scanner. Power off the scanner when the batch is done to end its Wi-Fi session. The receiver keeps running and waits for the next batch.
+## Everyday use
+
+The receiver runs around the clock. The scanner is switched on only for a batch of documents.
+
+1. **Switch the scanner on right before you scan.** Wait until it has joined Wi-Fi and the receiver log shows `Ready for paper`.
+2. **Insert a sheet face up.** The scanner pulls it in by itself and the scan starts. Feed the next sheet after the previous one has left the scanner.
+3. **Never press the Scan button on the scanner.** The receiver starts every scan. Pressing the button leaves the scanner stuck with a blinking yellow exclamation-mark light.
+4. **Switch the scanner off when the batch is done.** If the scanner stays on for a long time without scanning, its pool of network connections fills up after some minutes. Inserting a sheet then no longer starts a scan.
+
+If the scanner gets stuck in either way, switch it off and on again while the containers keep running. The [troubleshooting table](#troubleshooting) has the exact steps.
 
 ## Reference setup: Synology NAS and Paperless-ngx
 
@@ -135,6 +144,13 @@ For paper longer than A4, close the top output guide and leave room for the shee
 
 ## Troubleshooting
 
+Most problems come from the scanner itself and go away with a restart of the scanner, not of the containers. Follow the [everyday use](#everyday-use) rules to avoid them: switch the scanner on right before scanning, never press its Scan button, and switch it off after each batch.
+
+| What you see | What to do |
+| --- | --- |
+| The exclamation-mark light blinks yellow and the scanner doesn't respond, usually after the Scan button was pressed | Hold the power button for a few seconds until the scanner switches off, and wait until it is fully off. Leave the containers running. Switch the scanner on again, wait for Wi-Fi and `Ready for paper`, and insert the sheet again. |
+| Inserting a sheet doesn't start a scan, and the scanner has been on for a long time without scanning | The scanner's pool of network connections is full. Switch the scanner off and on again, wait for `Ready for paper`, and insert the sheet again. Switch the scanner off after each batch to prevent this. |
+
 `docker compose logs -f scanner` shows what the receiver is doing. The same state is written to `auto-status.json` in the working directory.
 
 | State | Meaning and what to check |
@@ -191,7 +207,7 @@ docker run --rm -e PYTHONDONTWRITEBYTECODE=1 -v "$PWD:/src" -w /src python:3.12-
   sh -c "pip install -q -r requirements-dev.txt && python -m unittest discover -s tests -v"
 ```
 
-The tests cover duplex PDF output, Legal-sized frames, partial scans, retries, and connection recovery. CI runs them, validates both Compose configurations, and builds the amd64 image. A separate Paperless-ngx 3.4.2 stack imported a synthetic duplex PDF from the receiver and recognized text on both pages. After setup, verify your own scanner with a marked test sheet.
+The tests cover duplex PDF output, Legal-sized frames, partial scans, retries, and connection recovery. CI runs them, validates both Compose configurations, builds the amd64 image, and starts it without a scanner to check that Brother's driver loads and the receiver reports the scanner as offline. A separate Paperless-ngx 3.4.2 stack imported a synthetic duplex PDF from the receiver and recognized text on both pages. After setup, verify your own scanner with a marked test sheet.
 
 Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md), and report security issues as described in [SECURITY.md](SECURITY.md).
 

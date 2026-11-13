@@ -64,6 +64,10 @@ sudo docker compose -p ds-940-paperless-scanner -f compose.yaml up -d --build sc
 
 ## Diagnostyka
 
+Większości problemów zapobiegają trzy zasady: włączaj skaner dopiero tuż przed skanowaniem, nigdy nie naciskaj na nim przycisku skanowania (skan zaczyna się po włożeniu kartki, którą skaner sam wciąga) i wyłączaj skaner po każdej serii.
+
+- Gdy po naciśnięciu przycisku skanowania miga żółty wykrzyknik i skaner nie reaguje, przytrzymaj przez kilka sekund przycisk zasilania i zaczekaj, aż skaner się wyłączy. Kontenery zostaw uruchomione. Włącz skaner ponownie, zaczekaj na połączenie Wi-Fi i `Ready for paper`, a potem włóż kartkę jeszcze raz.
+- Gdy włożona kartka nie uruchamia skanu, a skaner był długo włączony bez skanowania, jego pula połączeń sieciowych się zapełniła. Wyłącz i włącz skaner, zaczekaj na `Ready for paper` i włóż kartkę ponownie.
 - Przy `scanner_offline` sprawdź adres, tryb Wi-Fi i połączenie z LAN.
 - Przy `scanner_busy` lub `-NG 401` zamknij inne programy skanujące. Zaczekaj na ponowienie lub wyłącz i włącz Brothera.
 - Przy `paper_blocked` otwórz górną pokrywę, delikatnie wyjmij kartkę i zamknij pokrywę.
