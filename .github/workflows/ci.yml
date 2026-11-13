@@ -54,4 +54,4 @@ jobs:
           echo "Receiver state: ${state:-none}"
           test "$state" = scanner_offline
           docker exec ds940-smoke python -m ds940.supervisor healthcheck
-          docker stop --time 15 ds940-smoke
+          docker stop --timeout 15 ds940-smoke
