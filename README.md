@@ -207,7 +207,7 @@ docker run --rm -e PYTHONDONTWRITEBYTECODE=1 -v "$PWD:/src" -w /src python:3.12-
   sh -c "pip install -q -r requirements-dev.txt && python -m unittest discover -s tests -v"
 ```
 
-The tests cover duplex PDF output, Legal-sized frames, partial scans, retries, and connection recovery. CI runs them, validates both Compose configurations, and builds the amd64 image. A separate Paperless-ngx 3.4.2 stack imported a synthetic duplex PDF from the receiver and recognized text on both pages. After setup, verify your own scanner with a marked test sheet.
+The tests cover duplex PDF output, Legal-sized frames, partial scans, retries, and connection recovery. CI runs them, validates both Compose configurations, builds the amd64 image, and starts it without a scanner to check that Brother's driver loads and the receiver reports the scanner as offline. A separate Paperless-ngx 3.4.2 stack imported a synthetic duplex PDF from the receiver and recognized text on both pages. After setup, verify your own scanner with a marked test sheet.
 
 Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md), and report security issues as described in [SECURITY.md](SECURITY.md).
 

@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   verify:
@@ -36,3 +36,22 @@ jobs:
           docker compose -f compose.yaml -f compose.paperless.yaml config --quiet
       - name: Build the local scanner image
         run: docker build --platform linux/amd64 -t ds-940-paperless-scanner:ci .
+      - name: Start the image without a scanner
+        run: |
+          # Same hardening as compose.yaml. 192.0.2.42 is a documentation address,
+          # so a working receiver loads the driver and settles in scanner_offline.
+          docker run -d --name ds940-smoke --user 1000:1000 --read-only --cap-drop ALL \
+            --security-opt no-new-privileges:true --memory 512m \
+            --tmpfs /tmp:size=32m,mode=1777 --tmpfs /work:mode=1777 --tmpfs /consume:mode=1777 \
+            -e SCANNER_IP=192.0.2.42 ds-940-paperless-scanner:ci
+          state=""
+          for attempt in $(seq 1 60); do
+            state="$(docker exec ds940-smoke python -c 'import json; print(json.load(open("/work/auto-status.json"))["state"])' 2>/dev/null || true)"
+            [ "$state" = scanner_offline ] && break
+            sleep 2
+          done
+          docker logs ds940-smoke
+          echo "Receiver state: ${state:-none}"
+          test "$state" = scanner_offline
+          docker exec ds940-smoke python -m ds940.supervisor healthcheck
+          docker stop --time 15 ds940-smoke
