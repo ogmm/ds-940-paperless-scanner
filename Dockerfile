@@ -23,5 +23,9 @@ COPY requirements.txt .
 RUN python -m pip install --no-cache-dir -r requirements.txt
 COPY ds940/ ds940/
 
+LABEL org.opencontainers.image.title="ds-940-paperless-scanner" \
+      org.opencontainers.image.description="Hands-free scan-to-folder receiver for the Brother DS-940DW Wi-Fi scanner" \
+      org.opencontainers.image.source="https://github.com/ogmm/ds-940-paperless-scanner"
+
 USER 1000:1000
 ENTRYPOINT ["python", "-m", "ds940.supervisor"]
