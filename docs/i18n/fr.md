@@ -64,6 +64,10 @@ sudo docker compose -p ds-940-paperless-scanner -f compose.yaml up -d --build sc
 
 ## Dépannage
 
+Trois règles évitent la plupart des problèmes : allumez le scanner juste avant de numériser, n’appuyez jamais sur son bouton de numérisation (la numérisation démarre quand vous insérez une feuille, que le scanner entraîne seul) et éteignez le scanner après chaque série.
+
+- Si le point d’exclamation clignote en jaune après un appui sur le bouton de numérisation et que le scanner ne répond plus, maintenez le bouton d’alimentation enfoncé quelques secondes et attendez l’extinction complète. Laissez les conteneurs tourner. Rallumez le scanner, attendez le Wi-Fi et `Ready for paper`, puis réinsérez la feuille.
+- Si une feuille insérée ne lance pas de numérisation alors que le scanner est resté longtemps allumé sans servir, son pool de connexions réseau est saturé. Éteignez puis rallumez le scanner, attendez `Ready for paper` et réinsérez la feuille.
 - Avec `scanner_offline`, vérifiez le Wi-Fi, l’adresse réservée et l’accès depuis le NAS.
 - Avec `scanner_busy` ou `-NG 401`, fermez les autres logiciels de numérisation. Attendez la nouvelle tentative ou éteignez puis rallumez le Brother.
 - Avec `paper_blocked`, ouvrez le capot supérieur, retirez doucement la feuille et refermez le capot.

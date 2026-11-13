@@ -69,8 +69,12 @@ Git does not track `.env`, `work`, `consume`, or `export`, so the update keeps y
 
 Use `docker compose logs -f scanner` or read `auto-status.json` under `SCAN_WORK_DIR`. Docker's health check reports supervisor health. The `waiting_for_paper` state confirms the driver reached the feeder.
 
+Switch the scanner on right before a batch, start each scan only by inserting a sheet, and switch the scanner off afterwards. Never press the Scan button on the scanner. The [everyday use rules](../README.md#everyday-use) explain why.
+
 | What you see | What to check |
 | --- | --- |
+| The exclamation-mark light blinks yellow and the scanner doesn't respond, usually after the Scan button was pressed | Hold the power button for a few seconds until the scanner is fully off. Leave the containers running. Switch the scanner on, wait for Wi-Fi and `Ready for paper`, and insert the sheet again. |
+| A sheet doesn't start a scan after the scanner has been on for a long time without scanning | The scanner's pool of network connections is full. Switch the scanner off and on again and wait for `Ready for paper`. Switch it off after each batch to prevent this. |
 | `scanner_offline` | Check Wi-Fi mode, `SCANNER_IP`, and connectivity from the Docker host. Wait for the next retry after powering on. |
 | `scanner_busy` or `-NG 401` | Close other scanner clients. Let the receiver retry or power-cycle the scanner. Use one receiver per scanner. |
 | `paper_blocked` | Clear the feeder and check the paper length, output guide, and paper profile. |

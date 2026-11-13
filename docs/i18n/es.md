@@ -64,6 +64,10 @@ sudo docker compose -p ds-940-paperless-scanner -f compose.yaml up -d --build sc
 
 ## Solución de problemas
 
+Tres reglas evitan la mayoría de los problemas: enciende el escáner justo antes de escanear, no pulses nunca su botón de escaneo (el escaneo empieza al introducir una hoja, que el escáner arrastra solo) y apaga el escáner después de cada tanda.
+
+- Si tras pulsar el botón de escaneo parpadea en amarillo el signo de exclamación y el escáner no responde, mantén pulsado el botón de encendido unos segundos y espera a que se apague por completo. Deja los contenedores en marcha. Vuelve a encender el escáner, espera al Wi-Fi y a `Ready for paper` e introduce de nuevo la hoja.
+- Si una hoja introducida no inicia el escaneo después de que el escáner haya estado mucho tiempo encendido sin usarse, su grupo de conexiones de red está lleno. Apaga y enciende el escáner, espera a `Ready for paper` e introduce de nuevo la hoja.
 - Con `scanner_offline`, comprueba el Wi-Fi, la dirección reservada y el acceso desde el NAS.
 - Con `scanner_busy` o `-NG 401`, cierra otros programas de escaneo. Espera el siguiente intento o apaga y vuelve a encender el Brother.
 - Con `paper_blocked`, abre la tapa superior, retira la hoja con cuidado y cierra la tapa.

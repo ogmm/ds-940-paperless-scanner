@@ -61,9 +61,9 @@ You can also run the commands once through **Control Panel → Task Scheduler �
 ## 3. Verify a physical scan
 
 1. Power on the scanner in Wi-Fi mode. In the `scanner` container log, wait for `Ready for paper`. You can also read `work/auto-status.json` in File Station. `waiting_for_paper` indicates that the driver reached the feeder. Docker’s `healthy` status reports that the supervisor is running, even while the scanner is powered off.
-2. Mark the front and back of a test sheet. Insert it face up. The receiver starts automatically. Wait for the sheet to exit before feeding another.
+2. Mark the front and back of a test sheet. Insert it face up. The scanner pulls it in and the receiver starts the scan. Don't press the Scan button on the scanner. Wait for the sheet to exit before feeding another.
 3. Open the PDF on the share or in Paperless. Check both sides and the last line of the document. In Paperless, allow time for the import and OCR to finish.
-4. Power off the scanner after the batch. The receiver stays available for the next session.
+4. Power off the scanner after the batch. A scanner left on for a long time without scanning stops starting scans. The receiver stays available for the next session.
 
 To change `SCAN_PAPER_SIZE` in `.env`, run `docker compose up -d scanner` again with the same project name and `-f` files as your installation. For paper longer than A4, close the top output guide and leave room for a straight exit. [Brother’s supported paper sizes](https://support.brother.com/g/b/faqend.aspx?c=us&faqid=faq00002914_005&lang=en&pfs=1&prod=ds940dw_us_eu_as)
 
@@ -78,8 +78,12 @@ sudo docker compose -p ds-940-paperless-scanner -f compose.yaml up -d --build sc
 
 ## Troubleshoot the receiver
 
+Switch the scanner on right before a batch, start each scan only by inserting a sheet, never press the Scan button on the scanner, and switch the scanner off afterwards.
+
 | What you see | What to check |
 | --- | --- |
+| The exclamation-mark light blinks yellow and the scanner doesn’t respond, usually after the Scan button was pressed | Hold the power button for a few seconds until the scanner is fully off. Leave the containers running. Switch the scanner on, wait for Wi-Fi and `Ready for paper`, and insert the sheet again. |
+| A sheet doesn’t start a scan after the scanner has been on for a long time without scanning | The scanner’s pool of network connections is full. Switch the scanner off and on again and wait for `Ready for paper`. Switch it off after each batch to prevent this. |
 | `scanner_offline` after power-on | Check the scanner’s Wi-Fi mode, reserved IPv4 address, and LAN access from the NAS. The receiver retries after a delay. |
 | `scanner_busy` or `-NG 401` | Close other scanner clients. Let the receiver retry or power-cycle the Brother. Use one receiver per scanner. |
 | `paper_blocked` and the error light | Open the top cover, gently remove the sheet, and close the cover. Check its length, the guide, and the selected paper profile. |

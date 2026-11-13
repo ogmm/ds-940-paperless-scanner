@@ -64,6 +64,10 @@ sudo docker compose -p ds-940-paperless-scanner -f compose.yaml up -d --build sc
 
 ## Fehler beheben
 
+Die meisten Probleme vermeidest du mit drei Regeln: Schalte den Scanner erst kurz vor dem Scannen ein, drücke nie die Scan-Taste am Gerät (der Scan startet, sobald du ein Blatt einlegst und der Scanner es einzieht) und schalte den Scanner nach jeder Serie aus.
+
+- Blinkt nach einem Druck auf die Scan-Taste das gelbe Ausrufezeichen und reagiert der Scanner nicht mehr, halte die Ein/Aus-Taste einige Sekunden gedrückt und warte, bis er ausgeschaltet ist. Lass die Container weiterlaufen. Schalte den Scanner wieder ein, warte auf WLAN und `Ready for paper` und lege das Blatt erneut ein.
+- Startet ein eingelegtes Blatt keinen Scan, nachdem der Scanner lange ohne Scan eingeschaltet war, ist sein Pool an Netzwerkverbindungen voll. Schalte den Scanner aus und wieder ein, warte auf `Ready for paper` und lege das Blatt erneut ein.
 - Bei `scanner_offline` prüfe WLAN-Modus, reservierte Adresse und Erreichbarkeit im LAN.
 - Bei `scanner_busy` oder `-NG 401` schließe andere Scannerprogramme. Warte auf einen neuen Versuch oder schalte den Brother aus und wieder ein.
 - Bei `paper_blocked` öffne die obere Abdeckung, ziehe das Blatt vorsichtig heraus und schließe die Abdeckung.
